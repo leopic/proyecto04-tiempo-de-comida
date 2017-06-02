@@ -5,10 +5,13 @@ import {
     AppRegistry,
     StyleSheet,
     DatePickerIOS,
+    TouchableOpacity,
     Button,
     Text,
     View
 } from 'react-native';
+
+import Modal from 'react-native-modal';
 
 export default class TiempoDeComida extends Component {
     onHandleStuff($event) {
@@ -34,8 +37,20 @@ export default class TiempoDeComida extends Component {
 
     state = {
         startDate: this.props.startDate,
-        endDate: this.props.endDate
+        endDate: this.props.endDate,
+        isModalVisible: false
     };
+
+    _formattedDate(date: Date) {
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        return `${month}/${day}/${year}`;
+    };
+
+    _showModal = () => this.setState({ isModalVisible: true });
+
+    _hideModal = () => this.setState({ isModalVisible: false });
 
     render() {
         return (
@@ -44,20 +59,25 @@ export default class TiempoDeComida extends Component {
                     <Text style={styles.headerText}>Semana Nueva</Text>
                 </View>
 
-                <Text style={styles.welcome}>
-                    Welcome to React Native!
-                </Text>
+                <Text>startDate: {this._formattedDate(this.state.startDate)}</Text>
+                <Text>endDate: {this._formattedDate(this.state.endDate)}</Text>
 
-                <DatePickerIOS date={this.state.startDate} mode="datetime" style={styles.datePicker}
-                               onDateChange={this.onDateChange}/>
-
-                <DatePickerIOS date={this.state.endDate} mode="datetime" style={styles.datePicker}
-                               onDateChange={function (a, b) { console.log(a, b); }}/>
+                <Button title={'MODAL'} onPress={this._showModal}>MODAL</Button>
 
                 <View style={styles.footer}>
                     <Button style={styles.footerButton} title={'Cancelar'} onPress={this.onHandleStuff}>Cancelar</Button>
                     <Button style={styles.footerButton} title={'Listo'} onPress={this.onHandleStuff}>Listo</Button>
                 </View>
+
+                <Modal isVisible={this.state.isModalVisible}>
+                    <View style={{ backgroundColor: '#fff' }}>
+                        <Text style={{ margin: 10, fontSize: 18 }}>Start date</Text>
+                        <DatePickerIOS date={this.state.startDate} mode="date"
+                                       style={styles.datePicker} onDateChange={this.onDateChange}/>
+                        <Text style={{ color: '#fff' }}>Hello!</Text>
+                        <Button title={'Close'} onPress={this._hideModal}>Close</Button>
+                    </View>
+                </Modal>
             </View>
         );
     }
@@ -97,7 +117,7 @@ const styles = StyleSheet.create({
     },
     datePicker: {
         // backgroundColor: 'pink',
-        // height: 0
+        // height: 20
     }
 });
 
