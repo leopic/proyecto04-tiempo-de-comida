@@ -43,9 +43,11 @@ export default class TiempoDeComida extends Component {
 
     _formattedDate(date: Date) {
         const year = date.getFullYear();
-        const month = date.getMonth() + 1;
+        let month = date.getMonth() + 1;
+        const paddedMonth = month > 10 ? month : `0${month}`;
         const day = date.getDate();
-        return `${month}/${day}/${year}`;
+        const paddedDay = day > 10 ? day : `0${day}`;
+        return `${paddedDay}/${paddedMonth}/${year}`;
     };
 
     _showModal = () => this.setState({ isModalVisible: true });
@@ -56,13 +58,12 @@ export default class TiempoDeComida extends Component {
         return (
             <View style={styles.container}>
                 <View style={styles.header}>
-                    <Text style={styles.headerText}>Semana Nueva</Text>
+                    <Text style={styles.headerText}>SEMANA NUEVA</Text>
+                    <TouchableOpacity onPress={this._showModal} style={styles.dateWrap}>
+                        <Text style={styles.startDate}>Inicio: {this._formattedDate(this.state.startDate)}</Text>
+                        <Text style={styles.endDate}>Fin: {this._formattedDate(this.state.endDate)}</Text>
+                    </TouchableOpacity>
                 </View>
-
-                <Text>startDate: {this._formattedDate(this.state.startDate)}</Text>
-                <Text>endDate: {this._formattedDate(this.state.endDate)}</Text>
-
-                <Button title={'MODAL'} onPress={this._showModal}>MODAL</Button>
 
                 <View style={styles.footer}>
                     <Button style={styles.footerButton} title={'Cancelar'} onPress={this.onHandleStuff}>Cancelar</Button>
@@ -73,8 +74,7 @@ export default class TiempoDeComida extends Component {
                     <View style={{ backgroundColor: '#fff' }}>
                         <Text style={{ margin: 10, fontSize: 18 }}>Start date</Text>
                         <DatePickerIOS date={this.state.startDate} mode="date"
-                                       style={styles.datePicker} onDateChange={this.onDateChange}/>
-                        <Text style={{ color: '#fff' }}>Hello!</Text>
+                                       onDateChange={this.onDateChange}/>
                         <Button title={'Close'} onPress={this._hideModal}>Close</Button>
                     </View>
                 </Modal>
@@ -92,32 +92,33 @@ const styles = StyleSheet.create({
     header: {
         alignSelf: 'flex-start',
         backgroundColor: 'blue',
-        height: 64,
+        height: 48,
         width: '100%',
     },
     headerText: {
         color: '#fff',
         lineHeight: 64,
-        textAlign: 'center',
+        textAlign: 'center'
     },
     footer: {
         flexDirection: 'row',
         height: 48,
         justifyContent: 'space-around',
     },
-    welcome: {
-        alignSelf: 'flex-end',
-        backgroundColor: 'red',
-        color: '#fff',
-        flexGrow: 2,
-        fontSize: 20,
-        margin: 0,
-        textAlign: 'center',
-        width: '100%',
+    dateWrap: {
+        backgroundColor: 'teal',
+        height: 40,
+        padding: 10,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
     },
-    datePicker: {
-        // backgroundColor: 'pink',
-        // height: 20
+    startDate: {
+        flex: 1,
+        textAlign: 'center',
+    },
+    endDate: {
+        flex: 1,
+        textAlign: 'center',
     }
 });
 
