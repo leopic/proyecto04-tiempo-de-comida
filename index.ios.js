@@ -17,10 +17,37 @@ import Modal from 'react-native-modal';
 export default class TiempoDeComida extends Component {
     constructor(props) {
         super(props);
+
+        this.ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+        this.tiemposDeComida = this.props.tiemposDeComida;
+        this.entradas = this.props.entradas;
+
+        this.state = {
+            endDate: this.props.endDate,
+            entradasDataSource: this.ds.cloneWithRows(this.props.entradas),
+            isModalVisible: false,
+            startDate: this.props.startDate,
+            tiemposDeComidaDataSource: this.ds.cloneWithRows(this.tiemposDeComida),
+        };
     }
 
     onHandleStuff($event) {
         console.log('onHandleStuff', $event);
+        console.log(this.state);
+    }
+
+    calledFromChild = () => {
+        let test = this.tiemposDeComida.slice();
+        test = test.concat('AGUA');
+        this.tiemposDeComida = test;
+
+        // Patada para que react actualice todo =/
+        this.entradas = this.entradas.slice();
+
+        this.setState({
+            tiemposDeComidaDataSource: this.ds.cloneWithRows(this.tiemposDeComida),
+            entradasDataSource: this.ds.cloneWithRows(this.entradas)
+        });
     };
 
     onDateChange = (date) => {
@@ -39,14 +66,6 @@ export default class TiempoDeComida extends Component {
         startDate: new Date(),
         endDate: TiempoDeComida.endDate(),
         isModalVisible: false,
-        tiemposDeComida: [],
-        entradas: []
-    };
-
-    state = {
-        startDate: this.props.startDate,
-        endDate: this.props.endDate,
-        isModalVisible: false,
         tiemposDeComida: [
             'Lacteos',
             'Carbohidratos',
@@ -54,13 +73,15 @@ export default class TiempoDeComida extends Component {
             'Vegetales',
             'Grasas'
         ],
+        tiemposDeComidaDataSource: [],
         entradas: [
             {id: 1, name: 'Desayuno'},
             {id: 2, name: 'Merienda'},
             {id: 3, name: 'Almuerzo'},
             {id: 4, name: 'Merienda'},
             {id: 5, name: 'Cena'}
-        ]
+        ],
+        entradasDataSource: [],
     };
 
     _formattedDate(date: Date) {
@@ -77,10 +98,6 @@ export default class TiempoDeComida extends Component {
     _hideModal = () => this.setState({isModalVisible: false});
 
     render() {
-        let ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-        let dataSource = ds.cloneWithRows(this.state.entradas);
-        let tiemposDataSource = ds.cloneWithRows(this.state.tiemposDeComida);
-
         return (
             <View style={styles.container}>
                 <View style={styles.header}>
@@ -93,8 +110,11 @@ export default class TiempoDeComida extends Component {
                     </TouchableOpacity>
                 </View>
 
-                <MyListView tiemposDataSource={tiemposDataSource}
-                            datos={dataSource}/>
+                <MyListView
+                    tiemposDataSource={this.state.tiemposDeComidaDataSource}
+                    entradasDataSource={this.state.entradasDataSource}
+                    onClick={this.calledFromChild}
+                />
 
                 <View style={styles.footer}>
                     <Button style={styles.footerButton} title={'Cancelar'}
@@ -163,23 +183,25 @@ const styles = StyleSheet.create({
     }
 });
 
-class MyListView extends Component {
+class MyListView extends React.Component {
     render() {
         return (
-            <ListView dataSource={this.props.datos}
-                      style={listViewStyles.listView} renderRow={data => {
-                return <View style={listViewStyles.viewItem}>
-                    <Text style={listViewStyles.viewLabel}>
-                        id: {data.id} | name: {data.name}
-                    </Text>
-                    <ListView dataSource={this.props.tiemposDataSource} renderRow={t => {
-                        return <View
-                            style={{borderBottomWidth: 1, borderBottomColor: '#eaeaea', padding: 4}}>
-                            <Text>{t}</Text>
-                        </View>
-                    }}/>
-                </View>
-            }}
+            <ListView dataSource={this.props.entradasDataSource} style={listViewStyles.listView}
+                      renderRow={data => {
+                          return <View style={listViewStyles.viewItem}>
+                              <Button title={'Clicka'}
+                                      onPress={this.props.onClick}>Clicka</Button>
+                              <Text style={listViewStyles.viewLabel}>
+                                  id: {data.id} | name: {data.name}
+                              </Text>
+                              <ListView dataSource={this.props.tiemposDataSource} renderRow={t => {
+                                  return <View
+                                      style={{borderBottomWidth: 1, borderBottomColor: '#eaeaea', padding: 4}}>
+                                      <Text>{t}</Text>
+                                  </View>
+                              }}/>
+                          </View>
+                      }}
             />
         );
     }
