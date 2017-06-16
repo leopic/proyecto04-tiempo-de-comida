@@ -42,11 +42,12 @@ export default class TiempoDeComida extends React.Component {
 
         let entradas = this.entradas.slice();
         let comidasDataSource = this.ds.cloneWithRows([{
-            tipo: [],
+            comidas: [],
             cantidad: []
         }]);
         entradas = entradas.concat({
             comidas: [],
+            cantidad: [],
             comidasDataSource: comidasDataSource,
             nombre: nuevoTiempoDecomida,
             tiposDeAlimentos: this.tiposDeAlimentos
@@ -114,8 +115,29 @@ export default class TiempoDeComida extends React.Component {
         console.log('alimento tapped!', data, rowId);
     };
 
-    onAlimentoChanged = (a) => {
-        console.log('padre.onAlimentoChanged', a);
+    // Cuando se agrega un nuevo tipo a una comida existente
+    onAlimentoChanged = (temp) => {
+        let entradas = this.entradas.slice();
+        entradas[temp.rowId] = temp.data;
+
+        let comidasDataSource = this.ds.cloneWithRows([{
+            comidas: temp.data.comidas,
+            cantidad: temp.data.cantidad
+        }]);
+
+        // TODO: Remover el tiempo de comida nuevo
+        entradas[temp.rowId].comidas = temp.data.comidas;
+        entradas[temp.rowId].cantidad = temp.data.cantidad;
+        entradas[temp.rowId].comidasDataSource = comidasDataSource;
+
+        this.entradas = entradas;
+
+        // Update yo!
+        this.setState({
+            entradasDataSource: this.ds.cloneWithRows(this.entradas)
+        });
+
+        console.log('padre.onAlimentoChanged', temp);
     };
 
     render() {
@@ -211,61 +233,95 @@ const styles = StyleSheet.create({
 
 class MyListView extends React.Component {
     state = {
-        isMyModalVisible: false,
-        temp: {}
+        isModalVisible: false,
+        temp: {},
+        tiposDeAlimentos: []
     };
 
-    _showModal = () => this.setState({ isMyModalVisible: true });
+    _showModal = () => this.setState({ isModalVisible: true });
 
     _hideModal = () => {
-        this.setState({isMyModalVisible: false});
+        this.setState({isModalVisible: false});
+    };
 
-        // Comunicar al padre
+    _agregarTipoDeComida = () => {
+        console.log('_agregarTipoDeComida called!');
+        console.log('tiempo seleccionado:', this.state.tiempoSeleccionado);
+        let temp = this.state.temp;
+        let entrada = temp.data;
+        entrada.comidas.push(this.state.tiempoSeleccionado);
+        entrada.cantidad.push(0);
+        temp.data = entrada;
+
+        this.setState({temp: temp});
+        // Papucho, cambios, pida re-render
         this.props.onAlimentoChanged(this.state.temp);
-        this.setState({temp: null});
+        this._hideModal();
     };
 
     _onTapAlimento = (data, rowId) => {
         console.log('_onTapAlimento.alimento tapped!', data, rowId);
-        this.setState({temp: { data: data, rowId: rowId }});
+        // TODO: Filtrar los tipos de alimentos basados en lo agregado
+
+        this.setState({
+            temp: { data: data, rowId: rowId },
+            tiposDeAlimentos: data.tiposDeAlimentos
+        });
+
         this._showModal();
     };
 
-    // TODO:
-    // https://stackoverflow.com/questions/35397678/bind-picker-to-list-of-picker-item-in-react-native
-
     render() {
+        let listaDeTiposDeComida = this.state.tiposDeAlimentos.map((tipo, idx) => {
+            return <Picker.Item key={idx} value={tipo} label={tipo} />
+        });
+
+        let entradaComida = (comida) => {
+            if (!comida.comidas.length || !comida.cantidad.length) {
+                return <View/>;
+            }
+
+            return <View style={{padding: 4}}>
+                <Text>comida: {comida.comidas.join('-')}</Text>
+                <Text>cantidad: {comida.cantidad.join('-')}</Text>
+            </View>
+        };
+
+        let celda = (data, sId, rId) => {
+            return <View style={listViewStyles.viewItem}>
+                <Text style={listViewStyles.viewLabel}> nombre: {data.nombre} </Text>
+
+                <Button title={'Nuevo Alimento'} onPress={() => { this._onTapAlimento(data, rId); }}>Nuevo Alimento</Button>
+
+                <ListView dataSource={data.comidasDataSource} enableEmptySections={true} renderRow={entradaComida}/>
+
+                <Modal isVisible={this.state.isModalVisible}>
+                    <View style={{backgroundColor: '#fff'}}>
+                        <Text style={{color: '#000', padding: 10, textAlign: 'center', fontSize: 16, fontWeight: 'bold'}}>
+                            Seleccione el tipo de comida
+                        </Text>
+
+                        <Picker selectedValue={this.state.tiempoSeleccionado}
+                            onValueChange={(itemValue, itemIndex) => {
+                                console.log(itemIndex, itemValue);
+                                this.setState({tiempoSeleccionado: itemValue});
+                            }}>
+                            {listaDeTiposDeComida}
+                        </Picker>
+
+                        <Button title={'Agregar'} onPress={this._agregarTipoDeComida}>Agregar</Button>
+                        <Button title={'Close'} onPress={this._hideModal}>Cancelar</Button>
+                    </View>
+                </Modal>
+            </View>
+        };
+
         return (
-            <ListView dataSource={this.props.entradasDataSource} enableEmptySections={true}
-                      style={listViewStyles.listView} renderRow={(data, sId, rId) => {
-                          return <View style={listViewStyles.viewItem}>
-                              <Button title={'+'} onPress={this.props.onClick}>Nuevo tiempo de comida</Button>
-
-                              <Text style={listViewStyles.viewLabel}> nombre: {data.nombre} </Text>
-
-                              <Button title={'v'} onPress={() => { this._onTapAlimento(data, rId); }}>Nuevo Alimento</Button>
-
-                              <ListView dataSource={data.comidasDataSource} enableEmptySections={true}
-                                        renderRow={comida => {
-                                            return <View style={{padding: 4}}>
-                                                <Text>comida: {comida.tipo[0]}</Text>
-                                                <Text>comida: {comida.cantidad[0]}</Text>
-                                            </View>
-                                        }}/>
-
-                              <Modal isVisible={this.state.isMyModalVisible}>
-                                  <View style={{backgroundColor: '#fff'}}>
-                                      <Picker
-                                          selectedValue={this.state.language}
-                                          onValueChange={(itemValue, itemIndex) => this.setState({language: itemValue})}>
-                                          <Picker.Item label="Java" value="java" />
-                                          <Picker.Item label="JavaScript" value="js" />
-                                      </Picker>
-                                      <Button title={'Close'} onPress={this._hideModal}>Close</Button>
-                                  </View>
-                              </Modal>
-                          </View>
-                      }}
+            <ListView
+                dataSource={this.props.entradasDataSource}
+                enableEmptySections={true}
+                style={listViewStyles.listView}
+                renderRow={celda}
             />
         );
     }
