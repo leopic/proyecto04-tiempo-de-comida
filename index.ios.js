@@ -1,11 +1,12 @@
 'use strict';
 
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import {
     AppRegistry,
     StyleSheet,
     DatePickerIOS,
     TouchableOpacity,
+    AlertIOS,
     ListView,
     Button,
     Text,
@@ -14,7 +15,7 @@ import {
 
 import Modal from 'react-native-modal';
 
-export default class TiempoDeComida extends Component {
+export default class TiempoDeComida extends React.Component {
     constructor(props) {
         super(props);
 
@@ -36,18 +37,31 @@ export default class TiempoDeComida extends Component {
         console.log(this.state);
     }
 
-    calledFromChild = () => {
-        let test = this.tiemposDeComida.slice();
-        test = test.concat('AGUA');
-        this.tiemposDeComida = test;
+    onAgregarTiempoPresionado = () => {
+        AlertIOS.prompt(
+            'Nuevo tiempo de comida',
+            null,
+            nuevoTiempoDecomida => {
+                nuevoTiempoDecomida = nuevoTiempoDecomida.trim();
 
-        // Patada para que react actualice todo =/
-        this.entradas = this.entradas.slice();
+                if (!nuevoTiempoDecomida) {
+                    console.log('no se ingreso ningun valor');
+                    return;
+                }
 
-        this.setState({
-            tiemposDeComidaDataSource: this.ds.cloneWithRows(this.tiemposDeComida),
-            entradasDataSource: this.ds.cloneWithRows(this.entradas)
-        });
+                let tiemposDeComida = this.tiemposDeComida.slice();
+                tiemposDeComida = tiemposDeComida.concat(nuevoTiempoDecomida);
+                this.tiemposDeComida = tiemposDeComida;
+
+                // Patada para que react actualice todo =/
+                this.entradas = this.entradas.slice();
+
+                this.setState({
+                    tiemposDeComidaDataSource: this.ds.cloneWithRows(this.tiemposDeComida),
+                    entradasDataSource: this.ds.cloneWithRows(this.entradas)
+                });
+            }
+        );
     };
 
     onDateChange = (date) => {
@@ -113,7 +127,7 @@ export default class TiempoDeComida extends Component {
                 <MyListView
                     tiemposDataSource={this.state.tiemposDeComidaDataSource}
                     entradasDataSource={this.state.entradasDataSource}
-                    onClick={this.calledFromChild}
+                    onClick={this.onAgregarTiempoPresionado}
                 />
 
                 <View style={styles.footer}>
@@ -189,8 +203,8 @@ class MyListView extends React.Component {
             <ListView dataSource={this.props.entradasDataSource} style={listViewStyles.listView}
                       renderRow={data => {
                           return <View style={listViewStyles.viewItem}>
-                              <Button title={'Clicka'}
-                                      onPress={this.props.onClick}>Clicka</Button>
+                              <Button title={'+'}
+                                      onPress={this.props.onClick}>Nuevo tiempo de comida</Button>
                               <Text style={listViewStyles.viewLabel}>
                                   id: {data.id} | name: {data.name}
                               </Text>
