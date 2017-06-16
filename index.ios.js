@@ -1,15 +1,16 @@
 'use strict';
 
-import React, { Component } from 'react';
+import React from 'react';
 import {
-    AppRegistry,
-    StyleSheet,
-    DatePickerIOS,
-    TouchableOpacity,
     AlertIOS,
-    ListView,
+    AppRegistry,
     Button,
+    DatePickerIOS,
+    ListView,
+    Picker,
+    StyleSheet,
     Text,
+    TouchableOpacity,
     View
 } from 'react-native';
 
@@ -20,17 +21,44 @@ export default class TiempoDeComida extends React.Component {
         super(props);
 
         this.ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-        this.tiemposDeComida = this.props.tiemposDeComida;
         this.entradas = this.props.entradas;
+        this.tiposDeAlimentos = this.props.tiposDeAlimentos;
 
         this.state = {
             endDate: this.props.endDate,
-            entradasDataSource: this.ds.cloneWithRows(this.props.entradas),
+            entradasDataSource: this.ds.cloneWithRows(this.entradas),
             isModalVisible: false,
             startDate: this.props.startDate,
-            tiemposDeComidaDataSource: this.ds.cloneWithRows(this.tiemposDeComida),
         };
     }
+
+    agregarTiempoDeComida = (nuevoTiempoDecomida: String = '') => {
+        nuevoTiempoDecomida = nuevoTiempoDecomida.trim();
+
+        if (!nuevoTiempoDecomida) {
+            console.log('no se ingreso ningun valor');
+            return;
+        }
+
+        let entradas = this.entradas.slice();
+        let comidasDataSource = this.ds.cloneWithRows([{
+            tipo: [],
+            cantidad: []
+        }]);
+        entradas = entradas.concat({
+            comidas: [],
+            comidasDataSource: comidasDataSource,
+            nombre: nuevoTiempoDecomida,
+            tiposDeAlimentos: this.tiposDeAlimentos
+        });
+
+        this.entradas = entradas;
+
+        // Update yo!
+        this.setState({
+            entradasDataSource: this.ds.cloneWithRows(this.entradas)
+        });
+    };
 
     onHandleStuff($event) {
         console.log('onHandleStuff', $event);
@@ -41,33 +69,18 @@ export default class TiempoDeComida extends React.Component {
         AlertIOS.prompt(
             'Nuevo tiempo de comida',
             null,
-            nuevoTiempoDecomida => {
-                nuevoTiempoDecomida = nuevoTiempoDecomida.trim();
-
-                if (!nuevoTiempoDecomida) {
-                    console.log('no se ingreso ningun valor');
-                    return;
-                }
-
-                let tiemposDeComida = this.tiemposDeComida.slice();
-                tiemposDeComida = tiemposDeComida.concat(nuevoTiempoDecomida);
-                this.tiemposDeComida = tiemposDeComida;
-
-                // Patada para que react actualice todo =/
-                this.entradas = this.entradas.slice();
-
-                this.setState({
-                    tiemposDeComidaDataSource: this.ds.cloneWithRows(this.tiemposDeComida),
-                    entradasDataSource: this.ds.cloneWithRows(this.entradas)
-                });
-            }
+            this.agregarTiempoDeComida
         );
     };
 
     onDateChange = (date) => {
         let endDate = new Date(date);
         endDate.setDate(endDate.getDate() + 7);
-        this.setState({startDate: date, endDate: endDate});
+
+        this.setState({
+            startDate: date,
+            endDate: endDate
+        });
     };
 
     static endDate() {
@@ -77,25 +90,11 @@ export default class TiempoDeComida extends React.Component {
     }
 
     static defaultProps = {
-        startDate: new Date(),
         endDate: TiempoDeComida.endDate(),
+        entradas: [],
         isModalVisible: false,
-        tiemposDeComida: [
-            'Lacteos',
-            'Carbohidratos',
-            'Proteinas',
-            'Vegetales',
-            'Grasas'
-        ],
-        tiemposDeComidaDataSource: [],
-        entradas: [
-            {id: 1, name: 'Desayuno'},
-            {id: 2, name: 'Merienda'},
-            {id: 3, name: 'Almuerzo'},
-            {id: 4, name: 'Merienda'},
-            {id: 5, name: 'Cena'}
-        ],
-        entradasDataSource: [],
+        startDate: new Date(),
+        tiposDeAlimentos: ['Carbohidratos', 'Frutas', 'Grasas', 'Proteinas', 'Vegetales'],
     };
 
     _formattedDate(date: Date) {
@@ -111,6 +110,14 @@ export default class TiempoDeComida extends React.Component {
 
     _hideModal = () => this.setState({isModalVisible: false});
 
+    _onTapAlimento = (data, rowId) => {
+        console.log('alimento tapped!', data, rowId);
+    };
+
+    onAlimentoChanged = (a) => {
+        console.log('padre.onAlimentoChanged', a);
+    };
+
     render() {
         return (
             <View style={styles.container}>
@@ -124,10 +131,15 @@ export default class TiempoDeComida extends React.Component {
                     </TouchableOpacity>
                 </View>
 
+                <View>
+                    <Button style={styles.footerButton} title={'Nueva entrada'}
+                            onPress={this.onAgregarTiempoPresionado}>Nueva entrada</Button>
+                </View>
+
                 <MyListView
-                    tiemposDataSource={this.state.tiemposDeComidaDataSource}
                     entradasDataSource={this.state.entradasDataSource}
                     onClick={this.onAgregarTiempoPresionado}
+                    onAlimentoChanged={this.onAlimentoChanged}
                 />
 
                 <View style={styles.footer}>
@@ -139,8 +151,8 @@ export default class TiempoDeComida extends React.Component {
                 <Modal isVisible={this.state.isModalVisible}>
                     <View style={{backgroundColor: '#fff'}}>
                         <Text style={{margin: 10, fontSize: 18}}>Fecha de inicio</Text>
-                        <DatePickerIOS date={this.state.startDate}
-                                       mode="date" onDateChange={this.onDateChange}/>
+                        <DatePickerIOS date={this.state.startDate} mode="date"
+                                       onDateChange={this.onDateChange}/>
                         <Button title={'Close'} onPress={this._hideModal}>Close</Button>
                     </View>
                 </Modal>
@@ -198,22 +210,60 @@ const styles = StyleSheet.create({
 });
 
 class MyListView extends React.Component {
+    state = {
+        isMyModalVisible: false,
+        temp: {}
+    };
+
+    _showModal = () => this.setState({ isMyModalVisible: true });
+
+    _hideModal = () => {
+        this.setState({isMyModalVisible: false});
+
+        // Comunicar al padre
+        this.props.onAlimentoChanged(this.state.temp);
+        this.setState({temp: null});
+    };
+
+    _onTapAlimento = (data, rowId) => {
+        console.log('_onTapAlimento.alimento tapped!', data, rowId);
+        this.setState({temp: { data: data, rowId: rowId }});
+        this._showModal();
+    };
+
+    // TODO:
+    // https://stackoverflow.com/questions/35397678/bind-picker-to-list-of-picker-item-in-react-native
+
     render() {
         return (
-            <ListView dataSource={this.props.entradasDataSource} style={listViewStyles.listView}
-                      renderRow={data => {
+            <ListView dataSource={this.props.entradasDataSource} enableEmptySections={true}
+                      style={listViewStyles.listView} renderRow={(data, sId, rId) => {
                           return <View style={listViewStyles.viewItem}>
-                              <Button title={'+'}
-                                      onPress={this.props.onClick}>Nuevo tiempo de comida</Button>
-                              <Text style={listViewStyles.viewLabel}>
-                                  id: {data.id} | name: {data.name}
-                              </Text>
-                              <ListView dataSource={this.props.tiemposDataSource} renderRow={t => {
-                                  return <View
-                                      style={{borderBottomWidth: 1, borderBottomColor: '#eaeaea', padding: 4}}>
-                                      <Text>{t}</Text>
+                              <Button title={'+'} onPress={this.props.onClick}>Nuevo tiempo de comida</Button>
+
+                              <Text style={listViewStyles.viewLabel}> nombre: {data.nombre} </Text>
+
+                              <Button title={'v'} onPress={() => { this._onTapAlimento(data, rId); }}>Nuevo Alimento</Button>
+
+                              <ListView dataSource={data.comidasDataSource} enableEmptySections={true}
+                                        renderRow={comida => {
+                                            return <View style={{padding: 4}}>
+                                                <Text>comida: {comida.tipo[0]}</Text>
+                                                <Text>comida: {comida.cantidad[0]}</Text>
+                                            </View>
+                                        }}/>
+
+                              <Modal isVisible={this.state.isMyModalVisible}>
+                                  <View style={{backgroundColor: '#fff'}}>
+                                      <Picker
+                                          selectedValue={this.state.language}
+                                          onValueChange={(itemValue, itemIndex) => this.setState({language: itemValue})}>
+                                          <Picker.Item label="Java" value="java" />
+                                          <Picker.Item label="JavaScript" value="js" />
+                                      </Picker>
+                                      <Button title={'Close'} onPress={this._hideModal}>Close</Button>
                                   </View>
-                              }}/>
+                              </Modal>
                           </View>
                       }}
             />
