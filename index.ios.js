@@ -126,9 +126,10 @@ export default class TiempoDeComida extends React.Component {
         }]);
 
         // TODO: Remover el tiempo de comida nuevo
-        entradas[temp.rowId].comidas = temp.data.comidas;
-        entradas[temp.rowId].cantidad = temp.data.cantidad;
-        entradas[temp.rowId].comidasDataSource = comidasDataSource;
+        let tiempoDeComida = entradas[temp.rowId];
+        tiempoDeComida.comidas = temp.data.comidas;
+        tiempoDeComida.cantidad = temp.data.cantidad;
+        tiempoDeComida.comidasDataSource = comidasDataSource;
 
         this.entradas = entradas;
 
@@ -141,21 +142,22 @@ export default class TiempoDeComida extends React.Component {
     };
 
     render() {
+        let startDate = this._formattedDate(this.state.startDate);
+        let endDate = this._formattedDate(this.state.endDate);
+
         return (
             <View style={styles.container}>
                 <View style={styles.header}>
                     <Text style={styles.headerText}>SEMANA NUEVA</Text>
                     <TouchableOpacity onPress={this._showModal} style={styles.dateWrap}>
-                        <Text
-                            style={[styles.startDate, styles.dateStyles]}>Inicio: {this._formattedDate(this.state.startDate)}</Text>
-                        <Text
-                            style={[styles.endDate, styles.dateStyles]}>Fin: {this._formattedDate(this.state.endDate)}</Text>
+                        <Text style={[styles.startDate, styles.dateStyles]}> Inicio: {startDate}</Text>
+                        <Text style={[styles.endDate, styles.dateStyles]}> Fin: {endDate}</Text>
                     </TouchableOpacity>
                 </View>
 
                 <View>
-                    <Button style={styles.footerButton} title={'Nueva entrada'}
-                            onPress={this.onAgregarTiempoPresionado}>Nueva entrada</Button>
+                    <Button style={styles.footerButton} title={'Nuevo tiempo'}
+                            onPress={this.onAgregarTiempoPresionado}/>
                 </View>
 
                 <MyListView
@@ -165,9 +167,8 @@ export default class TiempoDeComida extends React.Component {
                 />
 
                 <View style={styles.footer}>
-                    <Button style={styles.footerButton} title={'Cancelar'}
-                            onPress={this.onHandleStuff}>Cancelar</Button>
-                    <Button style={styles.footerButton} title={'Listo'} onPress={this.onHandleStuff}>Listo</Button>
+                    <Button style={styles.footerButton} disabled={true} title={'Cancelar'} onPress={this.onHandleStuff}/>
+                    <Button style={styles.footerButton} disabled={true} title={'Listo'} onPress={this.onHandleStuff}/>
                 </View>
 
                 <Modal isVisible={this.state.isModalVisible}>
@@ -175,7 +176,7 @@ export default class TiempoDeComida extends React.Component {
                         <Text style={{margin: 10, fontSize: 18}}>Fecha de inicio</Text>
                         <DatePickerIOS date={this.state.startDate} mode="date"
                                        onDateChange={this.onDateChange}/>
-                        <Button title={'Close'} onPress={this._hideModal}>Close</Button>
+                        <Button title={'Cerrar'} onPress={this._hideModal}/>
                     </View>
                 </Modal>
             </View>
@@ -245,6 +246,10 @@ class MyListView extends React.Component {
     };
 
     _agregarTipoDeComida = () => {
+        if (!this.state.tiempoSeleccionado) {
+            return;
+        }
+
         console.log('_agregarTipoDeComida called!');
         console.log('tiempo seleccionado:', this.state.tiempoSeleccionado);
         let temp = this.state.temp;
@@ -253,8 +258,7 @@ class MyListView extends React.Component {
         entrada.cantidad.push(0);
         temp.data = entrada;
 
-        this.setState({temp: temp});
-        // Papucho, cambios, pida re-render
+        this.setState({temp: temp, tiempoSeleccionado: null});
         this.props.onAlimentoChanged(this.state.temp);
         this._hideModal();
     };
@@ -277,36 +281,34 @@ class MyListView extends React.Component {
         });
 
         let entradaComida = (comida) => {
-            if (!comida.comidas.length || !comida.cantidad.length) {
+            let comidas = comida.comidas;
+            let cantidades = comida.cantidad;
+
+            if (!comidas.length || !cantidades.length) {
                 return <View/>;
             }
 
             return <View style={{padding: 4}}>
-                <Text>comida: {comida.comidas.join('-')}</Text>
-                <Text>cantidad: {comida.cantidad.join('-')}</Text>
+                <Text>comida: {comidas.join('-')}</Text>
+                <Text>cantidad: {cantidades.join('-')}</Text>
             </View>
         };
 
         let celda = (data, sId, rId) => {
             return <View style={listViewStyles.viewItem}>
-                <Text style={listViewStyles.viewLabel}> nombre: {data.nombre} </Text>
+                <Text style={listViewStyles.viewLabel}>{data.nombre}</Text>
 
-                <Button title={'Nuevo Alimento'} onPress={() => { this._onTapAlimento(data, rId); }}>Nuevo Alimento</Button>
+                <Button title={'Nuevo Alimento'} onPress={() => { this._onTapAlimento(data, rId); }}/>
 
                 <ListView dataSource={data.comidasDataSource} enableEmptySections={true} renderRow={entradaComida}/>
 
                 <Modal isVisible={this.state.isModalVisible}>
                     <View style={{backgroundColor: '#fff'}}>
-                        <Text style={{color: '#000', padding: 10, textAlign: 'center', fontSize: 16, fontWeight: 'bold'}}>
-                            Seleccione el tipo de comida
-                        </Text>
+                        <Text style={{margin: 10, fontSize: 18}}>Seleccione el tipo de comida</Text>
 
                         <Picker selectedValue={this.state.tiempoSeleccionado}
-                            onValueChange={(itemValue, itemIndex) => {
-                                console.log(itemIndex, itemValue);
-                                this.setState({tiempoSeleccionado: itemValue});
-                            }}>
-                            {listaDeTiposDeComida}
+                            onValueChange={(itemValue, itemIndex) => { this.setState({tiempoSeleccionado: itemValue}); }}>
+                        {listaDeTiposDeComida}
                         </Picker>
 
                         <Button title={'Agregar'} onPress={this._agregarTipoDeComida}>Agregar</Button>
@@ -339,7 +341,7 @@ const listViewStyles = StyleSheet.create({
     },
     viewLabel: {
         fontSize: 16,
-        fontFamily: 'Courier New'
+        fontWeight: 'bold',
     }
 });
 
