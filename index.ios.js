@@ -155,10 +155,9 @@ export default class TiempoDeComida extends React.Component {
                     </TouchableOpacity>
                 </View>
 
-                <View>
-                    <Button style={styles.footerButton} title={'Nuevo tiempo'}
-                            onPress={this.onAgregarTiempoPresionado}/>
-                </View>
+                <TouchableOpacity onPress={this.onAgregarTiempoPresionado} style={styles.dateWrap}>
+                    <Text style={[styles.startDate, styles.dateStyles]}>Nuevo tiempo</Text>
+                </TouchableOpacity>
 
                 <MyListView
                     entradasDataSource={this.state.entradasDataSource}
@@ -246,8 +245,6 @@ class MyListView extends React.Component {
     };
 
     _agregarTipoDeComida = () => {
-        console.log('_agregarTipoDeComida');
-
         if (!this.state.tiempoSeleccionado) {
             return;
         }
@@ -256,7 +253,6 @@ class MyListView extends React.Component {
         let entrada = temp.data;
         entrada.comidas.push(this.state.tiempoSeleccionado);
         entrada.cantidad.push(0);
-
         let copiaDeTipos = entrada.tiposDeAlimentos.slice();
         copiaDeTipos.splice(copiaDeTipos.indexOf(this.state.tiempoSeleccionado), 1);
         entrada.tiposDeAlimentos = copiaDeTipos;
@@ -269,9 +265,6 @@ class MyListView extends React.Component {
     };
 
     _onTapAlimento = (data, rowId) => {
-        console.log('_onTapAlimento.alimento tapped!', data, rowId);
-        // TODO: Filtrar los tipos de alimentos basados en lo agregado
-
         this.setState({
             temp: { data: data, rowId: rowId },
             tiposDeAlimentos: data.tiposDeAlimentos
@@ -294,7 +287,7 @@ class MyListView extends React.Component {
             }
 
             let comidasView = comidas.map((comida, idx) => {
-                return <View style={{padding: 4}} key={comida}>
+                return <View style={{padding: 4}} key={comida + idx}>
                     <Text>{comida}: {cantidades[idx]}</Text>
                 </View>
             });
@@ -302,12 +295,14 @@ class MyListView extends React.Component {
             return <View>{comidasView}</View>
         };
 
-        let btnNuevoAlimento = (data, rId): View|Button => {
+        let btnNuevoAlimento = (data, rId): View|TouchableOpacity => {
             if (!data.tiposDeAlimentos.length) {
                 return <View/>
             }
 
-            return <Button title={'Nuevo Alimento'} onPress={() => { this._onTapAlimento(data, rId); }}/>;
+            return <TouchableOpacity onPress={() => { this._onTapAlimento(data, rId); }} style={listViewStyles.button}>
+                <Text style={listViewStyles.buttonLabel}>Nuevo Alimento</Text>
+            </TouchableOpacity>
         };
 
         let celda = (data, sId, rId): View => {
@@ -360,6 +355,17 @@ const listViewStyles = StyleSheet.create({
     viewLabel: {
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    button: {
+        backgroundColor: '#eee',
+        padding: 4,
+        marginTop: 4,
+        marginBottom: 4
+    },
+    buttonLabel: {
+        color: '#000',
+        textAlign: 'center',
+        fontSize: 13,
     }
 });
 
