@@ -163,7 +163,7 @@ export default class TiempoDeComida extends React.Component {
                     <Text style={[styles.startDate, styles.dateStyles]}>Agregar tiempo</Text>
                 </TouchableOpacity>
 
-                <MyListView
+                <TiemposListView
                     entradasDataSource={this.state.entradasDataSource}
                     onAgregarTipo={this.onAgregarTipo}
                     onEliminarTiempo={this.onEliminarTiempo}
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     }
 });
 
-class MyListView extends React.Component {
+class TiemposListView extends React.Component {
     state = {
         isModalVisible: false,
         temp: {},
