@@ -138,7 +138,7 @@ export default class TiempoDeComida extends React.Component {
             entradasDataSource: this.ds.cloneWithRows(this.entradas)
         });
 
-        console.log('padre.onAlimentoChanged', temp);
+        // console.log('padre.onAlimentoChanged', temp);
     };
 
     render() {
@@ -246,19 +246,24 @@ class MyListView extends React.Component {
     };
 
     _agregarTipoDeComida = () => {
+        console.log('_agregarTipoDeComida');
+
         if (!this.state.tiempoSeleccionado) {
             return;
         }
 
-        console.log('_agregarTipoDeComida called!');
-        console.log('tiempo seleccionado:', this.state.tiempoSeleccionado);
         let temp = this.state.temp;
         let entrada = temp.data;
         entrada.comidas.push(this.state.tiempoSeleccionado);
         entrada.cantidad.push(0);
+
+        let copiaDeTipos = entrada.tiposDeAlimentos.slice();
+        copiaDeTipos.splice(copiaDeTipos.indexOf(this.state.tiempoSeleccionado), 1);
+        entrada.tiposDeAlimentos = copiaDeTipos;
+
         temp.data = entrada;
 
-        this.setState({temp: temp, tiempoSeleccionado: null});
+        this.setState({temp: temp});
         this.props.onAlimentoChanged(this.state.temp);
         this._hideModal();
     };
@@ -276,11 +281,11 @@ class MyListView extends React.Component {
     };
 
     render() {
-        let listaDeTiposDeComida = this.state.tiposDeAlimentos.map((tipo, idx) => {
+        let listaDeTiposDeComida = this.state.tiposDeAlimentos.map((tipo, idx): Picker.Item[] => {
             return <Picker.Item key={idx} value={tipo} label={tipo} />
         });
 
-        let entradaComida = (comida) => {
+        let entradaComida = (comida): View => {
             let comidas = comida.comidas;
             let cantidades = comida.cantidad;
 
@@ -288,17 +293,28 @@ class MyListView extends React.Component {
                 return <View/>;
             }
 
-            return <View style={{padding: 4}}>
-                <Text>comida: {comidas.join('-')}</Text>
-                <Text>cantidad: {cantidades.join('-')}</Text>
-            </View>
+            let comidasView = comidas.map((comida, idx) => {
+                return <View style={{padding: 4}} key={comida}>
+                    <Text>{comida}: {cantidades[idx]}</Text>
+                </View>
+            });
+
+            return <View>{comidasView}</View>
         };
 
-        let celda = (data, sId, rId) => {
+        let btnNuevoAlimento = (data, rId): View|Button => {
+            if (!data.tiposDeAlimentos.length) {
+                return <View/>
+            }
+
+            return <Button title={'Nuevo Alimento'} onPress={() => { this._onTapAlimento(data, rId); }}/>;
+        };
+
+        let celda = (data, sId, rId): View => {
             return <View style={listViewStyles.viewItem}>
                 <Text style={listViewStyles.viewLabel}>{data.nombre}</Text>
 
-                <Button title={'Nuevo Alimento'} onPress={() => { this._onTapAlimento(data, rId); }}/>
+                {btnNuevoAlimento(data, rId)}
 
                 <ListView dataSource={data.comidasDataSource} enableEmptySections={true} renderRow={entradaComida}/>
 
@@ -308,11 +324,13 @@ class MyListView extends React.Component {
 
                         <Picker selectedValue={this.state.tiempoSeleccionado}
                             onValueChange={(itemValue, itemIndex) => { this.setState({tiempoSeleccionado: itemValue}); }}>
-                        {listaDeTiposDeComida}
+                            {listaDeTiposDeComida}
                         </Picker>
 
-                        <Button title={'Agregar'} onPress={this._agregarTipoDeComida}>Agregar</Button>
-                        <Button title={'Close'} onPress={this._hideModal}>Cancelar</Button>
+                        <View style={{flexDirection: 'row', height: 48, justifyContent: 'space-around'}}>
+                            <Button title={'Agregar'} onPress={this._agregarTipoDeComida}/>
+                            <Button title={'Cancelar'} onPress={this._hideModal}/>
+                        </View>
                     </View>
                 </Modal>
             </View>
