@@ -59,12 +59,22 @@ export default class TiemposListView extends React.Component {
         this.props.onEliminarTiempo(rowId);
     };
 
+    _aumentarCantidad = (idx, padreID) => {
+        console.log(`_aumentarCantidad macronutrienteIndex: ${idx} | padreIndex: ${padreID}`);
+        this.props.aumentarCantidad(idx, padreID);
+    };
+
+    _reducirCantidad = (idx, padreID) => {
+        console.log(`_reducirCantidad macronutrienteIndex: ${idx} | padreIndex: ${padreID}`);
+        this.props.reducirCantidad(idx, padreID);
+    };
+
     render() {
         let listaDeTiposDeComida = this.state.tiposDeAlimentos.map((tipo, idx): Picker.Item[] => {
             return <Picker.Item key={idx} value={tipo} label={tipo} />
         });
 
-        let entradaComida = (comida): View => {
+        let entradaComida = (comida, sectionID, rowID, padreID): View => {
             let comidas = comida.comidas;
             let cantidades = comida.cantidad;
 
@@ -74,7 +84,13 @@ export default class TiemposListView extends React.Component {
 
             let comidasView = comidas.map((comida, idx) => {
                 return <View style={{padding: 4}} key={comida + idx}>
+                    <TouchableOpacity onPress={() => { this._aumentarCantidad(idx, padreID); }} style={styles.button}>
+                        <Text style={styles.buttonLabel}>+</Text>
+                    </TouchableOpacity>
                     <Text>{comida}: {cantidades[idx]}</Text>
+                    <TouchableOpacity onPress={() => { this._reducirCantidad(idx); }} style={styles.button}>
+                        <Text style={styles.buttonLabel}>-</Text>
+                    </TouchableOpacity>
                 </View>
             });
 
@@ -95,7 +111,11 @@ export default class TiemposListView extends React.Component {
             return <View style={styles.viewItem}>
                 <Text style={styles.viewLabel}>{data.nombre}</Text>
 
-                <ListView dataSource={data.comidasDataSource} enableEmptySections={true} renderRow={entradaComida}/>
+                <ListView dataSource={data.comidasDataSource} enableEmptySections={true}
+                          renderRow={(rowData2, sid2, rid2) => {
+                              return entradaComida(rowData2, sid2, rid2, rId);
+                            }
+                          }/>
 
                 <View style={{flexDirection: 'row', justifyContent: 'space-around'}}>
                     {btnNuevoAlimento(data, rId)}
