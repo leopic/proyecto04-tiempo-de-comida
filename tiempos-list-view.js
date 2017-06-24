@@ -81,6 +81,9 @@ export default class TiemposListView extends React.Component {
     _eliminarMacroNutriente = idx => {
         let temp = this.state.temp;
         let entrada = temp.data;
+        let copiaDeTipos = entrada.tiposDeAlimentos.slice();
+        copiaDeTipos.push(entrada.comidas[idx]);
+        entrada.tiposDeAlimentos = copiaDeTipos;
         entrada.cantidad.splice(idx, 1);
         entrada.comidas.splice(idx, 1);
         temp.data = entrada;
