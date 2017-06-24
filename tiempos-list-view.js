@@ -48,7 +48,7 @@ export default class TiemposListView extends React.Component {
 
     _onTapAlimento = (data, rowId) => {
         this.setState({
-            temp: { data: data, rowId: rowId },
+            temp: {data: data, rowId: rowId},
             tiposDeAlimentos: data.tiposDeAlimentos
         });
 
@@ -59,14 +59,37 @@ export default class TiemposListView extends React.Component {
         this.props.onEliminarTiempo(rowId);
     };
 
-    _aumentarCantidad = (idx, padreID) => {
-        console.log(`_aumentarCantidad macronutrienteIndex: ${idx} | padreIndex: ${padreID}`);
-        this.props.aumentarCantidad(idx, padreID);
+    _modificarCantidad = (idx, cantidad): any => {
+        let temp = this.state.temp;
+        let entrada = temp.data;
+        entrada.cantidad[idx] = entrada.cantidad[idx] + cantidad;
+        temp.data = entrada;
+
+        return temp;
     };
 
-    _reducirCantidad = (idx, padreID) => {
-        console.log(`_reducirCantidad macronutrienteIndex: ${idx} | padreIndex: ${padreID}`);
-        this.props.reducirCantidad(idx, padreID);
+    _aumentarCantidad = idx => {
+        const temp = this._modificarCantidad(idx, 1);
+        this._actualizarTemp(temp);
+    };
+
+    _reducirCantidad = idx => {
+        const temp = this._modificarCantidad(idx, -1);
+        this._actualizarTemp(temp);
+    };
+
+    _eliminarMacroNutriente = idx => {
+        let temp = this.state.temp;
+        let entrada = temp.data;
+        entrada.cantidad.splice(idx, 1);
+        entrada.comidas.splice(idx, 1);
+        temp.data = entrada;
+        this._actualizarTemp(temp);
+    };
+
+    _actualizarTemp = temp => {
+        this.setState({temp: temp});
+        this.props.onAgregarTipo(this.state.temp);
     };
 
     render() {
@@ -74,7 +97,7 @@ export default class TiemposListView extends React.Component {
             return <Picker.Item key={idx} value={tipo} label={tipo} />
         });
 
-        let entradaComida = (comida, sectionID, rowID, padreID): View => {
+        let entradaComida = (comida, sectionID, rowID): View => {
             let comidas = comida.comidas;
             let cantidades = comida.cantidad;
 
@@ -84,12 +107,14 @@ export default class TiemposListView extends React.Component {
 
             let comidasView = comidas.map((comida, idx) => {
                 return <View style={{padding: 4}} key={comida + idx}>
-                    <TouchableOpacity onPress={() => { this._aumentarCantidad(idx, padreID); }} style={styles.button}>
+                    <TouchableOpacity onPress={() => { this._aumentarCantidad(idx); }} style={styles.button}>
                         <Text style={styles.buttonLabel}>+</Text>
                     </TouchableOpacity>
                     <Text>{comida}: {cantidades[idx]}</Text>
                     <TouchableOpacity onPress={() => { this._reducirCantidad(idx); }} style={styles.button}>
                         <Text style={styles.buttonLabel}>-</Text>
+                    </TouchableOpacity><TouchableOpacity onPress={() => { this._eliminarMacroNutriente(idx); }} style={styles.button}>
+                        <Text style={styles.buttonLabel}>X</Text>
                     </TouchableOpacity>
                 </View>
             });

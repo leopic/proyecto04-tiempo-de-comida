@@ -130,6 +130,11 @@ export default class TiempoDeComida extends React.Component {
         });
     };
 
+    onModificarCantidadDeTipo = (temp) => {
+        console.log('onModificarCantidadDeTipo', temp);
+        this.onAgregarTipo(temp);
+    };
+
     // Cuando cambia la fecha
     onDateChange = (date) => {
         let endDate = new Date(date);
