@@ -23,7 +23,7 @@ export default class TiempoDeComida extends React.Component {
 
         this.ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
         this.entradas = this.props.entradas;
-        this.tiposDeAlimentos = this.props.tiposDeAlimentos;
+        this.macronutrientes = this.props.macronutrientes;
 
         this.state = {
             endDate: this.props.endDate,
@@ -51,7 +51,7 @@ export default class TiempoDeComida extends React.Component {
             cantidad: [],
             comidasDataSource: comidasDataSource,
             nombre: nuevoTiempoDecomida,
-            tiposDeAlimentos: this.tiposDeAlimentos
+            macronutrientes: this.macronutrientes
         });
 
         this.entradas = entradas;
@@ -72,7 +72,7 @@ export default class TiempoDeComida extends React.Component {
         entradas: [],
         isModalVisible: false,
         startDate: new Date(),
-        tiposDeAlimentos: ['Carbohidratos', 'Frutas', 'Grasas', 'Proteinas', 'Vegetales'],
+        macronutrientes: ['Carbohidratos', 'Frutas', 'Grasas', 'Proteinas', 'Vegetales'],
     };
 
     _formattedDate(date: Date) {
@@ -89,17 +89,17 @@ export default class TiempoDeComida extends React.Component {
     _hideModal = () => this.setState({isModalVisible: false});
 
     // Cuando se elimina un tiempo de comida
-    onEliminarTiempo = (rowId) => {
-      let entradas = this.entradas.slice();
-      entradas.splice(rowId, 1);
-      this.entradas = entradas;
+    onEliminarTiempo = rowId => {
+        let entradas = this.entradas.slice();
+        entradas.splice(rowId, 1);
+        this.entradas = entradas;
 
-      this.setState({
-        entradasDataSource: this.ds.cloneWithRows(this.entradas)
-      })
+        this.setState({
+            entradasDataSource: this.ds.cloneWithRows(this.entradas)
+        })
     };
 
-    // Cuando se quiere agregar un nuevo tiempo
+    // Cuando se quiere agregar un nuevo tiempo de comida
     onAgregarTiempo = () => {
         AlertIOS.prompt(
             'Agregar tiempo de comida',
@@ -108,8 +108,8 @@ export default class TiempoDeComida extends React.Component {
         );
     };
 
-    // Cuando se agrega un nuevo tipo a un tiempo existente
-    onAgregarTipo = (temp) => {
+    // Cuando se realizan cambios sobre un tiempo de comida
+    onActualizarTiempoDeComida = (temp) => {
         let entradas = this.entradas.slice();
         entradas[temp.rowId] = temp.data;
 
@@ -130,13 +130,8 @@ export default class TiempoDeComida extends React.Component {
         });
     };
 
-    onModificarCantidadDeTipo = (temp) => {
-        console.log('onModificarCantidadDeTipo', temp);
-        this.onAgregarTipo(temp);
-    };
-
     // Cuando cambia la fecha
-    onDateChange = (date) => {
+    onDateChange = date => {
         let endDate = new Date(date);
         endDate.setDate(endDate.getDate() + 7);
 
@@ -145,11 +140,6 @@ export default class TiempoDeComida extends React.Component {
             endDate: endDate
         });
     };
-
-    // Cuando se hace click a los botones del footer
-    onFooterButtonTap($event) {
-        console.log('onFooterButtonTap', $event);
-    }
 
     render() {
         let startDate = this._formattedDate(this.state.startDate);
@@ -171,13 +161,13 @@ export default class TiempoDeComida extends React.Component {
 
                 <TiemposListView
                     entradasDataSource={this.state.entradasDataSource}
-                    onAgregarTipo={this.onAgregarTipo}
+                    onActualizarTiempoDeComida={this.onActualizarTiempoDeComida}
                     onEliminarTiempo={this.onEliminarTiempo}
                 />
 
                 <View style={styles.footer}>
-                    <Button style={styles.footerButton} disabled={true} title={'Cancelar'} onPress={this.onFooterButtonTap}/>
-                    <Button style={styles.footerButton} disabled={true} title={'Listo'} onPress={this.onFooterButtonTap}/>
+                    <Button style={styles.footerButton} disabled={true} title={'Cancelar'} onPress={() => { }}/>
+                    <Button style={styles.footerButton} disabled={true} title={'Listo'} onPress={() => { }}/>
                 </View>
 
                 <Modal isVisible={this.state.isModalVisible}>

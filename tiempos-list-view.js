@@ -16,40 +16,37 @@ import Modal from 'react-native-modal';
 export default class TiemposListView extends React.Component {
     state = {
         isModalVisible: false,
-        temp: {},
-        tiposDeAlimentos: []
+        tiempoDeComidaActual: {},
+        macronutrientes: []
     };
 
     _showModal = () => this.setState({ isModalVisible: true });
 
-    _hideModal = () => {
-        this.setState({isModalVisible: false});
-    };
+    _hideModal = () => this.setState({ isModalVisible: false });
 
     _agregarTipoDeComida = () => {
         if (!this.state.tiempoSeleccionado) {
             return;
         }
 
-        let temp = this.state.temp;
+        let temp = this.state.tiempoDeComidaActual;
         let entrada = temp.data;
         entrada.comidas.push(this.state.tiempoSeleccionado);
         entrada.cantidad.push(0);
-        let copiaDeTipos = entrada.tiposDeAlimentos.slice();
+        let copiaDeTipos = entrada.macronutrientes.slice();
         copiaDeTipos.splice(copiaDeTipos.indexOf(this.state.tiempoSeleccionado), 1);
-        entrada.tiposDeAlimentos = copiaDeTipos;
+        entrada.macronutrientes = copiaDeTipos.sort();
 
         temp.data = entrada;
 
-        this.setState({temp: temp});
-        this.props.onAgregarTipo(this.state.temp);
+        this._actualizarTiempoDeComida(temp);
         this._hideModal();
     };
 
-    _onTapAlimento = (data, rowId) => {
+    _onTapAgregarMacronutriente = (data, rowId) => {
         this.setState({
-            temp: {data: data, rowId: rowId},
-            tiposDeAlimentos: data.tiposDeAlimentos
+            tiempoDeComidaActual: {data: data, rowId: rowId},
+            macronutrientes: data.macronutrientes
         });
 
         this._showModal();
@@ -59,8 +56,8 @@ export default class TiemposListView extends React.Component {
         this.props.onEliminarTiempo(rowId);
     };
 
-    _modificarCantidad = (idx, cantidad): any => {
-        let temp = this.state.temp;
+    _modificarCantidadMacronutriente = (idx, cantidad): any => {
+        let temp = this.state.tiempoDeComidaActual;
         let entrada = temp.data;
         entrada.cantidad[idx] = entrada.cantidad[idx] + cantidad;
         temp.data = entrada;
@@ -68,53 +65,53 @@ export default class TiemposListView extends React.Component {
         return temp;
     };
 
-    _aumentarCantidad = idx => {
-        const temp = this._modificarCantidad(idx, 1);
-        this._actualizarTemp(temp);
+    _aumentarMacronutriente = idx => {
+        const temp = this._modificarCantidadMacronutriente(idx, 1);
+        this._actualizarTiempoDeComida(temp);
     };
 
-    _reducirCantidad = idx => {
-        const temp = this._modificarCantidad(idx, -1);
-        this._actualizarTemp(temp);
+    _reducirMacronutriente = idx => {
+        const temp = this._modificarCantidadMacronutriente(idx, -1);
+        this._actualizarTiempoDeComida(temp);
     };
 
     _eliminarMacroNutriente = idx => {
-        let temp = this.state.temp;
+        let temp = this.state.tiempoDeComidaActual;
         let entrada = temp.data;
-        let copiaDeTipos = entrada.tiposDeAlimentos.slice();
+        let copiaDeTipos = entrada.macronutrientes.slice();
         copiaDeTipos.push(entrada.comidas[idx]);
-        entrada.tiposDeAlimentos = copiaDeTipos;
+        entrada.macronutrientes = copiaDeTipos;
         entrada.cantidad.splice(idx, 1);
         entrada.comidas.splice(idx, 1);
         temp.data = entrada;
-        this._actualizarTemp(temp);
+        this._actualizarTiempoDeComida(temp);
     };
 
-    _actualizarTemp = temp => {
-        this.setState({temp: temp});
-        this.props.onAgregarTipo(this.state.temp);
+    _actualizarTiempoDeComida = nuevoTiempo => {
+        this.setState({ tiempoDeComidaActual: nuevoTiempo });
+        this.props.onActualizarTiempoDeComida(this.state.tiempoDeComidaActual);
     };
 
     render() {
-        let listaDeTiposDeComida = this.state.tiposDeAlimentos.map((tipo, idx): Picker.Item[] => {
+        let listaDeTiposDeComida = this.state.macronutrientes.map((tipo, idx): Picker.Item[] => {
             return <Picker.Item key={idx} value={tipo} label={tipo} />
         });
 
-        let entradaComida = (comida, sectionID, rowID): View => {
-            let comidas = comida.comidas;
-            let cantidades = comida.cantidad;
+        let dibujarMacronutriente = (tiempoDeComida): View => {
+            let comidas = tiempoDeComida.comidas;
+            let cantidades = tiempoDeComida.cantidad;
 
             if (!comidas.length || !cantidades.length) {
                 return <View/>;
             }
 
-            let comidasView = comidas.map((comida, idx) => {
-                return <View style={{padding: 4}} key={comida + idx}>
-                    <TouchableOpacity onPress={() => { this._aumentarCantidad(idx); }} style={styles.button}>
+            let comidasView = comidas.map((macronutriente, idx) => {
+                return <View style={{padding: 4}} key={macronutriente + idx}>
+                    <TouchableOpacity onPress={() => { this._aumentarMacronutriente(idx); }} style={styles.button}>
                         <Text style={styles.buttonLabel}>+</Text>
                     </TouchableOpacity>
-                    <Text>{comida}: {cantidades[idx]}</Text>
-                    <TouchableOpacity onPress={() => { this._reducirCantidad(idx); }} style={styles.button}>
+                    <Text>{macronutriente}: {cantidades[idx]}</Text>
+                    <TouchableOpacity onPress={() => { this._reducirMacronutriente(idx); }} style={styles.button}>
                         <Text style={styles.buttonLabel}>-</Text>
                     </TouchableOpacity><TouchableOpacity onPress={() => { this._eliminarMacroNutriente(idx); }} style={styles.button}>
                         <Text style={styles.buttonLabel}>X</Text>
@@ -125,12 +122,12 @@ export default class TiemposListView extends React.Component {
             return <View>{comidasView}</View>
         };
 
-        let btnNuevoAlimento = (data, rId): View|TouchableOpacity => {
-            if (!data.tiposDeAlimentos.length) {
+        let btnAgregarMacronutriente = (data, rId): View|TouchableOpacity => {
+            if (!data.macronutrientes.length) {
                 return <View/>
             }
 
-            return <TouchableOpacity onPress={() => { this._onTapAlimento(data, rId); }} style={styles.button}>
+            return <TouchableOpacity onPress={() => { this._onTapAgregarMacronutriente(data, rId); }} style={styles.button}>
                 <Text style={styles.buttonLabel}>Agregar macronutriente</Text>
             </TouchableOpacity>
         };
@@ -140,13 +137,10 @@ export default class TiemposListView extends React.Component {
                 <Text style={styles.viewLabel}>{data.nombre}</Text>
 
                 <ListView dataSource={data.comidasDataSource} enableEmptySections={true}
-                          renderRow={(rowData2, sid2, rid2) => {
-                              return entradaComida(rowData2, sid2, rid2, rId);
-                            }
-                          }/>
+                          renderRow={(macronutriente) => dibujarMacronutriente(macronutriente) }/>
 
                 <View style={{flexDirection: 'row', justifyContent: 'space-around'}}>
-                    {btnNuevoAlimento(data, rId)}
+                    {btnAgregarMacronutriente(data, rId)}
 
                     <TouchableOpacity onPress={() => { this._onEliminarTiempo(data, rId); }}
                                       style={[styles.button, styles.buttonWarning]}>
