@@ -106,16 +106,24 @@ export default class TiemposListView extends React.Component {
             }
 
             let comidasView = comidas.map((macronutriente, idx) => {
-                return <View style={{padding: 4}} key={macronutriente + idx}>
-                    <TouchableOpacity onPress={() => { this._aumentarMacronutriente(idx); }} style={styles.button}>
-                        <Text style={styles.buttonLabel}>+</Text>
+                return <View style={styles.macronutriente} key={macronutriente + idx}>
+                    <TouchableOpacity onPress={() => { this._eliminarMacroNutriente(idx); }}
+                                      style={[styles.button, styles.buttonSm, styles.buttonWarning]}>
+                        <Text style={[styles.buttonLabel, styles.buttonSmLabel]}>X</Text>
                     </TouchableOpacity>
-                    <Text>{macronutriente}: {cantidades[idx]}</Text>
-                    <TouchableOpacity onPress={() => { this._reducirMacronutriente(idx); }} style={styles.button}>
-                        <Text style={styles.buttonLabel}>-</Text>
-                    </TouchableOpacity><TouchableOpacity onPress={() => { this._eliminarMacroNutriente(idx); }} style={styles.button}>
-                        <Text style={styles.buttonLabel}>X</Text>
-                    </TouchableOpacity>
+
+                    <Text style={{flexGrow: 2, textAlign: 'left', paddingLeft: 4}}>{macronutriente}: {cantidades[idx]}</Text>
+
+                    <View style={styles.stepperContainer}>
+                        <TouchableOpacity onPress={() => { this._reducirMacronutriente(idx); }}
+                                          style={[styles.button, styles.buttonSm]}>
+                            <Text style={[styles.buttonSmLabel]}>-</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => { this._aumentarMacronutriente(idx); }}
+                                          style={[styles.button, styles.buttonSm]}>
+                            <Text style={styles.buttonSmLabel}>+</Text>
+                        </TouchableOpacity>
+                        </View>
                 </View>
             });
 
@@ -134,18 +142,20 @@ export default class TiemposListView extends React.Component {
 
         let celda = (data, sId, rId): View => {
             return <View style={styles.viewItem}>
-                <Text style={styles.viewLabel}>{data.nombre}</Text>
+                <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+                    <TouchableOpacity onPress={() => { this._onEliminarTiempo(data, rId); }}
+                                      style={[styles.button, styles.buttonSm, styles.buttonWarning]}>
+                        <Text style={[styles.buttonLabel, styles.buttonSmLabel]}>X</Text>
+                    </TouchableOpacity>
 
-                <ListView dataSource={data.comidasDataSource} enableEmptySections={true}
+                    <Text style={styles.viewLabel}>{data.nombre}</Text>
+                </View>
+
+                <ListView dataSource={data.comidasDataSource} enableEmptySections={true} style={{marginBottom: 8}}
                           renderRow={(macronutriente) => dibujarMacronutriente(macronutriente) }/>
 
                 <View style={{flexDirection: 'row', justifyContent: 'space-around'}}>
                     {btnAgregarMacronutriente(data, rId)}
-
-                    <TouchableOpacity onPress={() => { this._onEliminarTiempo(data, rId); }}
-                                      style={[styles.button, styles.buttonWarning]}>
-                        <Text style={[styles.buttonLabel]}>Eliminar tiempo</Text>
-                    </TouchableOpacity>
                 </View>
 
                 <Modal isVisible={this.state.isModalVisible}>
@@ -180,7 +190,7 @@ export default class TiemposListView extends React.Component {
 const styles = StyleSheet.create({
     listView: {
         padding: 10,
-        backgroundColor: '#fff',
+        backgroundColor: '#fff'
     },
     viewItem: {
         padding: 4,
@@ -190,19 +200,64 @@ const styles = StyleSheet.create({
     viewLabel: {
         fontSize: 16,
         fontWeight: 'bold',
+        textAlign: 'left',
+        flexGrow: 2,
+        lineHeight: 44,
+        paddingLeft: 4,
     },
     button: {
         backgroundColor: '#eee',
         padding: 4,
+        paddingLeft: 8,
+        paddingRight: 8,
         marginTop: 4,
-        marginBottom: 4
+        marginBottom: 4,
+        borderRadius: 4,
+        minWidth: 44,
+        minHeight: 44,
     },
     buttonLabel: {
         color: '#000',
         textAlign: 'center',
+        lineHeight: 44,
         fontSize: 13,
     },
     buttonWarning: {
-        backgroundColor: 'rgb(255, 200, 200)'
+        backgroundColor: 'rgb(255, 230, 230)'
+    },
+    buttonWarningLabel: {
+        color: '#000',
+    },
+    stepperContainer: {
+        alignSelf: 'flex-end',
+        flexDirection: 'row',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        alignContent: 'stretch',
+        borderRadius: 4,
+    },
+    buttonSm: {
+        backgroundColor: '#f7f7f7',
+        margin: 2,
+        padding: 0,
+    },
+    buttonSmLabel: {
+        lineHeight: 44,
+        textAlign: 'center',
+        fontWeight: 'bold',
+        fontSize: 12,
+        color: '#007AFF'
+    },
+    macronutriente: {
+        alignContent: 'stretch',
+        alignItems: 'center',
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        padding: 2,
+        paddingLeft: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f7f7f7',
     }
 });
