@@ -51,6 +51,7 @@ export default class TiempoDeComida extends React.Component {
             cantidad: [],
             comidasDataSource: comidasDataSource,
             nombre: nuevoTiempoDecomida,
+            hora: new Date(),
             macronutrientes: this.macronutrientes
         });
 
@@ -156,7 +157,7 @@ export default class TiempoDeComida extends React.Component {
                 </View>
 
                 <TouchableOpacity onPress={this.onAgregarTiempo} style={styles.dateWrap}>
-                    <Text style={[styles.startDate, styles.dateStyles]}>Agregar tiempo</Text>
+                    <Text style={[styles.startDate, styles.dateStyles]}>(+) Agregar tiempo</Text>
                 </TouchableOpacity>
 
                 <TiemposListView
@@ -166,8 +167,8 @@ export default class TiempoDeComida extends React.Component {
                 />
 
                 <View style={styles.footer}>
-                    <Button style={styles.footerButton} disabled={true} title={'Cancelar'} onPress={() => { }}/>
-                    <Button style={styles.footerButton} disabled={true} title={'Listo'} onPress={() => { }}/>
+                    <Button style={styles.footerButton} disabled={true} title={'Cancelar'} onPress={() => {}}/>
+                    <Button style={styles.footerButton} disabled={true} title={'Listo'} onPress={() => {}}/>
                 </View>
 
                 <Modal isVisible={this.state.isModalVisible}>

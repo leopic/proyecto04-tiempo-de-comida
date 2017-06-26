@@ -3,6 +3,7 @@
 import React from 'react';
 import {
     Button,
+    DatePickerIOS,
     ListView,
     Picker,
     StyleSheet,
@@ -16,9 +17,11 @@ import Modal from 'react-native-modal';
 export default class TiemposListView extends React.Component {
     state = {
         isModalVisible: false,
+        isTimePickerVisible: false,
         tiempoDeComidaActual: {},
         macronutrientes: [],
-        tiempoSeleccionado: null
+        tiempoSeleccionado: null,
+        hora: new Date()
     };
 
     _showModal = () => this.setState({ isModalVisible: true });
@@ -94,6 +97,15 @@ export default class TiemposListView extends React.Component {
         this.props.onActualizarTiempoDeComida(this.state.tiempoDeComidaActual);
     };
 
+    _showTimeModal = () => { this.setState({ isTimePickerVisible: true}) };
+    _hideTimeModal = () => { this.setState({ isTimePickerVisible: false}) };
+
+    _cambiarHora = (data, rowId) => {
+        data.hora = this.state.hora;
+        this.setState({ tiempoDeComidaActual: {data: data, rowId: rowId} });
+        this._hideTimeModal();
+    };
+
     render() {
         let listaDeTiposDeComida = this.state.macronutrientes.map((tipo, idx): Picker.Item[] => {
             return <Picker.Item key={idx} value={tipo} label={tipo} />
@@ -110,7 +122,7 @@ export default class TiemposListView extends React.Component {
             let comidasView = comidas.map((macronutriente, idx) => {
                 return <View style={styles.macronutriente} key={macronutriente + idx}>
                     <TouchableOpacity onPress={() => { this._eliminarMacroNutriente(idx); }}
-                                      style={[styles.button, styles.buttonSm, styles.buttonWarning]}>
+                                      style={[styles.button, styles.buttonSm]}>
                         <Text style={[styles.buttonLabel, styles.buttonSmLabel, styles.buttonWarningLabel]}>X</Text>
                     </TouchableOpacity>
 
@@ -137,20 +149,30 @@ export default class TiemposListView extends React.Component {
                 return <View/>
             }
 
-            return <TouchableOpacity onPress={() => { this._onTapAgregarMacronutriente(data, rId); }} style={styles.button}>
-                <Text style={styles.buttonLabel}>Agregar macronutriente</Text>
+            return <TouchableOpacity onPress={() => { this._onTapAgregarMacronutriente(data, rId); }}
+                                     style={[styles.button, styles.buttonSm]}>
+                <Text style={[styles.buttonLabel, styles.buttonSmLabel]}>(v) alimento</Text>
             </TouchableOpacity>
+        };
+
+        let hora = (date: Date) => {
+            return `${date.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}`;
         };
 
         let celda = (data, sId, rId): View => {
             return <View style={styles.viewItem}>
                 <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
                     <TouchableOpacity onPress={() => { this._onEliminarTiempo(data, rId); }}
-                                      style={[styles.button, styles.buttonSm, styles.buttonWarning]}>
+                                      style={[styles.button, styles.buttonSm]}>
                         <Text style={[styles.buttonLabel, styles.buttonSmLabel, styles.buttonWarningLabel]}>X</Text>
                     </TouchableOpacity>
 
                     <Text style={styles.viewLabel}>{data.nombre}</Text>
+
+                    <TouchableOpacity onPress={this._showTimeModal}
+                                      style={[styles.button, styles.buttonSm]}>
+                        <Text style={[styles.buttonLabel, styles.buttonSmLabel]}>{hora(data.hora)}</Text>
+                    </TouchableOpacity>
                 </View>
 
                 <ListView dataSource={data.comidasDataSource} enableEmptySections={true} style={{marginBottom: 8}}
@@ -173,6 +195,15 @@ export default class TiemposListView extends React.Component {
                             <Button title={'Agregar'} onPress={this._agregarTipoDeComida}/>
                             <Button title={'Cancelar'} onPress={this._hideModal}/>
                         </View>
+                    </View>
+                </Modal>
+
+                <Modal isVisible={this.state.isTimePickerVisible}>
+                    <View style={{backgroundColor: '#fff'}}>
+                        <Text style={{margin: 10, fontSize: 18}}>Seleccione la hora</Text>
+                        <DatePickerIOS date={this.state.hora} mode="time"
+                                       onDateChange={newValue => this.setState({hora: newValue})}/>
+                        <Button title={'Cerrar'} onPress={() => this._cambiarHora(data, rId) }/>
                     </View>
                 </Modal>
             </View>
