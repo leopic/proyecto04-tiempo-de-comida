@@ -17,7 +17,8 @@ export default class TiemposListView extends React.Component {
     state = {
         isModalVisible: false,
         tiempoDeComidaActual: {},
-        macronutrientes: []
+        macronutrientes: [],
+        tiempoSeleccionado: null
     };
 
     _showModal = () => this.setState({ isModalVisible: true });
@@ -46,7 +47,8 @@ export default class TiemposListView extends React.Component {
     _onTapAgregarMacronutriente = (data, rowId) => {
         this.setState({
             tiempoDeComidaActual: {data: data, rowId: rowId},
-            macronutrientes: data.macronutrientes
+            macronutrientes: data.macronutrientes,
+            tiempoSeleccionado: data.macronutrientes[0]
         });
 
         this._showModal();
@@ -109,7 +111,7 @@ export default class TiemposListView extends React.Component {
                 return <View style={styles.macronutriente} key={macronutriente + idx}>
                     <TouchableOpacity onPress={() => { this._eliminarMacroNutriente(idx); }}
                                       style={[styles.button, styles.buttonSm, styles.buttonWarning]}>
-                        <Text style={[styles.buttonLabel, styles.buttonSmLabel]}>X</Text>
+                        <Text style={[styles.buttonLabel, styles.buttonSmLabel, styles.buttonWarningLabel]}>X</Text>
                     </TouchableOpacity>
 
                     <Text style={{flexGrow: 2, textAlign: 'left', paddingLeft: 4}}>{macronutriente}: {cantidades[idx]}</Text>
@@ -145,7 +147,7 @@ export default class TiemposListView extends React.Component {
                 <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
                     <TouchableOpacity onPress={() => { this._onEliminarTiempo(data, rId); }}
                                       style={[styles.button, styles.buttonSm, styles.buttonWarning]}>
-                        <Text style={[styles.buttonLabel, styles.buttonSmLabel]}>X</Text>
+                        <Text style={[styles.buttonLabel, styles.buttonSmLabel, styles.buttonWarningLabel]}>X</Text>
                     </TouchableOpacity>
 
                     <Text style={styles.viewLabel}>{data.nombre}</Text>
@@ -222,11 +224,8 @@ const styles = StyleSheet.create({
         lineHeight: 44,
         fontSize: 13,
     },
-    buttonWarning: {
-        backgroundColor: 'rgb(255, 230, 230)'
-    },
     buttonWarningLabel: {
-        color: '#000',
+        color: 'rgb(255, 100, 100)',
     },
     stepperContainer: {
         alignSelf: 'flex-end',
